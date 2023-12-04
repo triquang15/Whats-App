@@ -17,7 +17,7 @@ public class TokenProvider {
 	
 	public String generateToken(Authentication authentication) {
 		String jwt = Jwts.builder().setIssuer("Tri Quang")
-				.setIssuedAt(new Date()).setExpiration(new Date(new Date().getTime() + 86400000))
+				.setIssuedAt(new Date()).setExpiration(new Date(new Date().getTime() + 3600000))
 				.claim("email", authentication.getName())
 				.signWith(key)
 				.compact();
@@ -31,7 +31,4 @@ public class TokenProvider {
 		String email = String.valueOf(claims.get("email"));
 		return email;
 	}
-	
-	
-
 }
