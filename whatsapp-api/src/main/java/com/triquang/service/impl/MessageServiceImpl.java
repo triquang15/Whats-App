@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.triquang.exception.ChatException;
 import com.triquang.exception.MessageException;
@@ -18,6 +19,7 @@ import com.triquang.service.ChatService;
 import com.triquang.service.MessageService;
 import com.triquang.service.UserService;
 
+@Service
 public class MessageServiceImpl implements MessageService {
 	@Autowired
 	private MessageRepository messageRepository;
