@@ -24,7 +24,7 @@ public class WebSecurityConfig {
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-		.and().authorizeHttpRequests(authorize-> authorize.requestMatchers("/api/**").authenticated()
+		.and().authorizeHttpRequests(authorize-> authorize.requestMatchers("/af/**").authenticated()
 				.anyRequest().permitAll()).addFilterBefore(new JwtTokenValidator(), BasicAuthenticationFilter.class)
 		.csrf().disable()
 		.cors().configurationSource(new CorsConfigurationSource() {
@@ -43,7 +43,7 @@ public class WebSecurityConfig {
 			}
 		})
 		.and().formLogin().and().httpBasic();
-		return null;
+		return http.build();
 		
 	}
 	

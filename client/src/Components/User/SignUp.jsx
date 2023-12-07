@@ -18,7 +18,6 @@ export const SignUp = (e) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log("handleSubmit", inputData);
         dispatch(signUp(inputData));
         setOpenSnackBar(true);
     };

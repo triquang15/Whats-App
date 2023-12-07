@@ -64,7 +64,7 @@ export const HomePage = () => {
 
   useEffect(()=> {
     if(!auth.reqUser) {
-      navigate("/signup")
+      navigate("/signin")
     }
   }, [auth.reqUser])
 
@@ -97,7 +97,7 @@ export const HomePage = () => {
                       src="https://cdn.pixabay.com/photo/2023/10/01/12/56/shih-tzu-8287355_1280.jpg"
                       alt=""
                     />
-                    <p>Tri Quang</p>
+                    <p className="font-bold">{auth.reqUser?.fullName}</p>
                   </div>
                   <div className="space-x-3 text-2xl flex">
                     <TbCircleDashed

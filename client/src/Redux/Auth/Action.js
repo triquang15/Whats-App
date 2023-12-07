@@ -29,6 +29,7 @@ export const signIn = (data) => async(dispatch) => {
             body:JSON.stringify(data)
         })
         const user = await res.json();
+        if(user.jwt) localStorage.setItem("token",user.jwt)
         console.log("SIGN_IN ", user);
         dispatch({type: SIGN_IN, payload:user});
     } catch (error) {

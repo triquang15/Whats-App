@@ -1,26 +1,50 @@
 import { Alert, Button, Snackbar } from '@mui/material';
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
+import { currentUser, signIn } from '../../Redux/Auth/Action';
 
 export const SignIn = () => {
     const [inputData, setInputData] = useState({email: "", password: ""});
-    const navigate = useNavigate(false);
-    const [openSnackBar, setOpenSnackBar] = useState();
+    const navigate = useNavigate();
+    const [openSnackBar, setOpenSnackBar] = useState(false);
+    const [openSnackBarWarning, setOpenSnackBarWarning] = useState(false);
+    const dispatch = useDispatch();
+    const {auth} = useSelector(store => store);
+    const token = localStorage.getItem("token");
 
     const handleSubmit = (e) => {
         e.preventDefault()
-        console.log("handleSubmit");
+        dispatch(signIn(inputData));
+        if(token === null) {
+            setOpenSnackBarWarning(true);
+        }
         setOpenSnackBar(true);
     }
 
-    const handleChange = () => {
-
+    const handleChange = (e) => {
+        const {name, value} = e.target;
+        setInputData((values) => ({...values,[name]: value}))
     }
 
     const handleSnackBarClose =() => {
         setOpenSnackBar(false);
     }
+
+    const handleSnackBarWarningClose =() => {
+        setOpenSnackBarWarning(false);
+    }
+
+    useEffect(() => {
+        if(token) dispatch(currentUser(token));
+    }, [token])
+
+    useEffect(() => {
+        if(auth.reqUser?.fullName) {
+            navigate("/")
+        }
+    }, [auth.reqUser])
 
   return (
     <div className=''>
@@ -31,12 +55,12 @@ export const SignIn = () => {
                     <div>
                         <p className='mb-2 font-semibold'>Email Adress</p>
                         <input required placeholder='Enter your email' onChange={handleChange} value={inputData.email}
-                        type="email" pattern="[^ @]*@[^ @]*" className='py-2 outline outline-orange-900  w-full rounded-md border' />
+                        type="email" name='email' pattern="[^ @]*@[^ @]*" className='py-2 outline outline-orange-900  w-full rounded-md border' />
                     </div>
                     <div>
                         <p className='mb-2 font-semibold'>Password</p>
                         <input required placeholder='Enter your password' onChange={handleChange} value={inputData.password}
-                        type="password" className='py-2 outline outline-orange-900 w-full rounded-md border' />
+                        type="password" name='password' className='py-2 outline outline-orange-900 w-full rounded-md border' />
                     </div>
                     <div>
                         <Button type='submit' sx={{bgcolor:"#5a2257", padding:".5rem 0rem"}} className='w-full bg-orange-800' variant='contained'>Sign In</Button>
@@ -57,6 +81,12 @@ export const SignIn = () => {
                 <Alert onClose={handleSnackBarClose} security='success' sx={{width: '100%'}}>
                 Logged in successfully.
                 </Alert>
+            </Snackbar>
+        </div>
+
+        <div>
+            <Snackbar open={openSnackBarWarning} autoHideDuration={2000} onClose={handleSnackBarWarningClose}>
+                 <Alert onClose={handleSnackBarWarningClose} severity="error">Incorrect email or password</Alert>
             </Snackbar>
         </div>
     </div>
