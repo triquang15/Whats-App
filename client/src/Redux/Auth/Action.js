@@ -1,16 +1,17 @@
 import { BASE_API } from "../../config/api"
-import { REQ_USER, SEARCH_USER, SIGN_IN, SIGN_UP, UPDATE_USER } from "./ActionType";
+import { LOG_OUT, REQ_USER, SEARCH_USER, SIGN_IN, SIGN_UP, UPDATE_USER } from "./ActionType";
 
 export const signUp = (data) => async(dispatch) => {
     try {
         const res = await fetch(`${BASE_API}/auth/signup`, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
             },
             body:JSON.stringify(data)
         })
         const user = await res.json();
+        if(user.jwt) localStorage.setItem("token",user.jwt)
         console.log("SIGN_UP ", user);
         dispatch({type: SIGN_UP, payload:user});
     } catch (error) {
@@ -37,7 +38,7 @@ export const signIn = (data) => async(dispatch) => {
 
 export const currentUser = (token) => async(dispatch) => {
     try {
-        const res = await fetch(`${BASE_API}/users/profile`, {
+        const res = await fetch(`${BASE_API}/api/users/profile`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -54,7 +55,7 @@ export const currentUser = (token) => async(dispatch) => {
 
 export const searchUser = (data) => async(dispatch) => {
     try {
-        const res = await fetch(`${BASE_API}/users/search?name=${data.keyword}`, {
+        const res = await fetch(`${BASE_API}/api/users/search?name=${data.keyword}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -71,7 +72,7 @@ export const searchUser = (data) => async(dispatch) => {
 
 export const updateUser = (data) => async(dispatch) => {
     try {
-        const res = await fetch(`${BASE_API}/users/update/${data.id}`, {
+        const res = await fetch(`${BASE_API}/api/users/update/${data.id}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -85,4 +86,10 @@ export const updateUser = (data) => async(dispatch) => {
     } catch (error) {
         console.log(error);
     }
+}
+
+export const logoutAction = ()=> async(dispatch) => {
+    localStorage.removeItem("token");
+    dispatch({type: LOG_OUT, payload:null})
+    dispatch({type: REQ_USER, payload:null})
 }

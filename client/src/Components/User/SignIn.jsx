@@ -30,12 +30,12 @@ export const SignIn = () => {
                     <h1 className='text-xl font-bold'>Log in to your WhatsApp account</h1>
                     <div>
                         <p className='mb-2 font-semibold'>Email Adress</p>
-                        <input placeholder='Enter your email' onChange={handleChange} value={inputData.email}
-                        type="text" className='py-2 outline outline-orange-900  w-full rounded-md border' />
+                        <input required placeholder='Enter your email' onChange={handleChange} value={inputData.email}
+                        type="email" pattern="[^ @]*@[^ @]*" className='py-2 outline outline-orange-900  w-full rounded-md border' />
                     </div>
                     <div>
                         <p className='mb-2 font-semibold'>Password</p>
-                        <input placeholder='Enter your password' onChange={handleChange} value={inputData.password}
+                        <input required placeholder='Enter your password' onChange={handleChange} value={inputData.password}
                         type="password" className='py-2 outline outline-orange-900 w-full rounded-md border' />
                     </div>
                     <div>

@@ -1,27 +1,46 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { Alert, Button, Snackbar } from '@mui/material';
+import { useDispatch, useSelector } from "react-redux";
+import { currentUser, signUp } from "../../Redux/Auth/Action";
 
 export const SignUp = (e) => {
+    const token = localStorage.getItem("token");
     const [inputData, setInputData] = useState({
         fullName: "",
         email: "",
         password: "",
     });
-    const navigate = useNavigate(false);
-    const [openSnackBar, setOpenSnackBar] = useState();
+    const {auth} = useSelector(store => store);
+    const navigate = useNavigate();
+    const [openSnackBar, setOpenSnackBar] = useState(false);
+    const dispatch = useDispatch();
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log("handleSubmit");
+        console.log("handleSubmit", inputData);
+        dispatch(signUp(inputData));
         setOpenSnackBar(true);
     };
 
-    const handleChange = () => { };
+    const handleChange = (e) => { 
+        const {name, value} = e.target;
+        setInputData((values) => ({...values,[name]: value}))
+    };
 
     const handleSnackBarClose = () => {
         setOpenSnackBar(false);
     };
+
+    useEffect(() => {
+        if(token) dispatch(currentUser(token))
+    }, [token])
+
+    useEffect(() => {
+        if(auth.reqUser?.fullName) {
+            navigate("/")
+        }
+    }, [auth.reqUser])
 
     return (
         <div>
@@ -34,7 +53,7 @@ export const SignUp = (e) => {
                         </h1>
                         <div>
                             <p className="mb-2 font-semibold">Username</p>
-                            <input
+                            <input required
                                 className="py-2 px-3 outline outline-orange-900 w-full rounded-md border-1"
                                 type="text"
                                 placeholder="Enter username"
@@ -45,9 +64,9 @@ export const SignUp = (e) => {
                         </div>
                         <div>
                             <p className="mb-2 font-semibold">Email Address</p>
-                            <input
+                            <input required
                                 className="py-2 px-3 outline outline-orange-900 w-full rounded-md border-1"
-                                type="text"
+                                type="email" pattern="[^ @]*@[^ @]*"
                                 placeholder="Enter your email"
                                 name="email"
                                 onChange={(e) => handleChange(e)}
@@ -56,7 +75,7 @@ export const SignUp = (e) => {
                         </div>
                         <div>
                             <p className="mb-2 font-semibold">Password</p>
-                            <input
+                            <input required
                                 className="py-2 px-3 outline outline-orange-900 w-full rounded-md border-1"
                                 type="password"
                                 placeholder="Enter your pasword"

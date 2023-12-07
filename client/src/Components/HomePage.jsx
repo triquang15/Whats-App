@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { TbCircleDashed } from "react-icons/tb";
 import { BiCommentDetail } from "react-icons/bi";
 import { ImAttachment } from "react-icons/im";
@@ -16,6 +16,8 @@ import { useNavigate } from "react-router";
 import { Profile } from "./Profile/Profile";
 import { Menu, MenuItem } from "@mui/material";
 import { CreateGroup } from "./Group/CreateGroup";
+import { useDispatch, useSelector } from "react-redux";
+import { currentUser, logoutAction } from "../Redux/Auth/Action";
 
 export const HomePage = () => {
   const [query, setQuery] = useState(null);
@@ -27,6 +29,10 @@ export const HomePage = () => {
 
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
+  const dispatch = useDispatch();
+  const {auth} = useSelector(store =>store);
+  const token = localStorage.getItem("token");
+
   const handleClick = (e) => {
     setAnchorEl(e.currentTarget);
   };
@@ -50,6 +56,21 @@ export const HomePage = () => {
   const handleCreateGroup = () => {
     setIsGroup(true);
   };
+
+  const handleLogout = ()=> {
+    dispatch(logoutAction());
+    navigate("/signin")
+  }
+
+  useEffect(()=> {
+    if(!auth.reqUser) {
+      navigate("/signup")
+    }
+  }, [auth.reqUser])
+
+  useEffect(()=> {
+    dispatch(currentUser(token))
+  }, [token])
 
   return (
     <div className="relative">
@@ -106,7 +127,7 @@ export const HomePage = () => {
                         <MenuItem onClick={handleCreateGroup}>
                           Create Group
                         </MenuItem>
-                        <MenuItem onClick={handleClose}>Logout</MenuItem>
+                        <MenuItem onClick={handleLogout}>Logout</MenuItem>
                       </Menu>
                     </div>
                   </div>
