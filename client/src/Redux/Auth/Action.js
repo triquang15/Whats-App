@@ -56,7 +56,7 @@ export const currentUser = (token) => async(dispatch) => {
 
 export const searchUser = (data) => async(dispatch) => {
     try {
-        const res = await fetch(`${BASE_API}/api/users/search?name=${data.keyword}`, {
+        const res = await fetch(`${BASE_API}/api/users/search?keyword=${data.keyword}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -73,13 +73,13 @@ export const searchUser = (data) => async(dispatch) => {
 
 export const updateUser = (data) => async(dispatch) => {
     try {
-        const res = await fetch(`${BASE_API}/api/users/update/${data.id}`, {
-            method: "POST",
+        const res = await fetch(`${BASE_API}/api/users/update`, {
+            method: "PUT",
             headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${data.token}`
             },
-            body:JSON.stringify(data)
+            body:JSON.stringify(data.data)
         })
         const user = await res.json();
         console.log("Update User ", user);
@@ -94,3 +94,4 @@ export const logoutAction = ()=> async(dispatch) => {
     dispatch({type: LOG_OUT, payload:null})
     dispatch({type: REQ_USER, payload:null})
 }
+

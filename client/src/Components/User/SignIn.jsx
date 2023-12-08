@@ -17,10 +17,11 @@ export const SignIn = () => {
     const handleSubmit = (e) => {
         e.preventDefault()
         dispatch(signIn(inputData));
-        if(token === null) {
-            setOpenSnackBarWarning(true);
-        }
         setOpenSnackBar(true);
+        if(token === null ) {
+            setOpenSnackBarWarning(true);
+            setOpenSnackBar(false);
+        } 
     }
 
     const handleChange = (e) => {
@@ -77,14 +78,14 @@ export const SignIn = () => {
             </div>
         </div>
         <div>
-            <Snackbar open={openSnackBar} autoHideDuration={2000} onClose={handleSnackBarClose}>
+            <Snackbar open={openSnackBar} autoHideDuration={3000} onClose={handleSnackBarClose}>
                 <Alert onClose={handleSnackBarClose} security='success' sx={{width: '100%'}}>
                 Logged in successfully.
                 </Alert>
             </Snackbar>
         </div>
 
-        <div>
+     <div>
             <Snackbar open={openSnackBarWarning} autoHideDuration={2000} onClose={handleSnackBarWarningClose}>
                  <Alert onClose={handleSnackBarWarningClose} severity="error">Incorrect email or password</Alert>
             </Snackbar>

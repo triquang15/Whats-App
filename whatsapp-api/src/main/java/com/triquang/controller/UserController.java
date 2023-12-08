@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.triquang.exception.UserException;
@@ -33,8 +34,8 @@ public class UserController {
 		return new ResponseEntity<User>(user, HttpStatus.ACCEPTED);
 	}
 	
-	@GetMapping("/{query}")
-	public ResponseEntity<List<User>> searchUserHandler(@PathVariable("query") String q){
+	@GetMapping("/search")
+	public ResponseEntity<List<User>> searchUserHandler(@RequestParam("keyword") String q){
 		List<User> listUsers = userService.searchUser(q);
 		
 		return new ResponseEntity<List<User>>(listUsers, HttpStatus.OK);

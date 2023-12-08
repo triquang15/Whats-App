@@ -17,7 +17,9 @@ import { Profile } from "./Profile/Profile";
 import { Menu, MenuItem } from "@mui/material";
 import { CreateGroup } from "./Group/CreateGroup";
 import { useDispatch, useSelector } from "react-redux";
-import { currentUser, logoutAction } from "../Redux/Auth/Action";
+import { currentUser, logoutAction, searchUser } from "../Redux/Auth/Action";
+import { createChat, getUserChat } from "../Redux/Chat/Action";
+import { createMessage, getAllMessage } from "../Redux/Message/Action";
 
 export const HomePage = () => {
   const [query, setQuery] = useState(null);
@@ -30,7 +32,7 @@ export const HomePage = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
   const dispatch = useDispatch();
-  const {auth} = useSelector(store =>store);
+  const { auth, chat, message } = useSelector((store) => store);
   const token = localStorage.getItem("token");
 
   const handleClick = (e) => {
@@ -40,10 +42,16 @@ export const HomePage = () => {
     setAnchorEl(null);
   };
 
-  const handleSearch = () => [];
-  const handleClickChat = () => [setCurrentChat(true)];
-
-  const hanldeMessage = () => {};
+  const handleSearch = (keyword) => {
+    dispatch(searchUser({ keyword, token }));
+  };
+  const handleClickChat = (userId) => {
+    dispatch(createChat({ token, data: { userId } }));
+    setQuery("")
+  };
+  const hanldeMessage = () => {
+    dispatch(createMessage({token, data:{chatId:currentChat.id, content:content}}))
+  };
 
   const handleNavigate = () => {
     setIsProfile(true);
@@ -57,27 +65,40 @@ export const HomePage = () => {
     setIsGroup(true);
   };
 
-  const handleLogout = ()=> {
+  const handleLogout = () => {
     dispatch(logoutAction());
-    navigate("/signin")
+    navigate("/signin");
+  };
+
+  useEffect(() => {
+    if (!auth.reqUser) {
+      navigate("/signin");
+    }
+  }, [auth.reqUser]);
+
+  useEffect(() => {
+    dispatch(currentUser(token));
+  }, [token]);
+
+  useEffect(() => {
+    dispatch(getUserChat({ token }));
+  }, [chat.createChat, chat.createGroupChat]);
+
+  const handleCurrentChat = (item) => {
+    setCurrentChat(item)
   }
 
   useEffect(()=> {
-    if(!auth.reqUser) {
-      navigate("/signin")
-    }
-  }, [auth.reqUser])
-
-  useEffect(()=> {
-    dispatch(currentUser(token))
-  }, [token])
+    if(currentChat?.id)
+    dispatch(getAllMessage({chatId:currentChat.id, token}))
+  }, [currentChat, message.newMessage])
 
   return (
     <div className="relative">
       <div className="w-full py-14 bg-[#6e256e]"></div>
       <div className="flex bg-[#f0f2f5] h-[90vh] absolute left-[2vw] top-[5vh] w-[96vw]">
         <div className="left w-[30%] bg-[#e8e9ec] h-full">
-          {isGroup && <CreateGroup />}
+          {isGroup && <CreateGroup setIsGroup={setIsGroup} />}
           {isProfile && (
             <div className="w-full h-full">
               <Profile handleOpenClose={handleOpenClose} />
@@ -94,9 +115,7 @@ export const HomePage = () => {
                   >
                     <img
                       className="rounded-full w-10 h-10 cursor-pointer"
-                      src="https://cdn.pixabay.com/photo/2023/10/01/12/56/shih-tzu-8287355_1280.jpg"
-                      alt=""
-                    />
+                      src={auth.reqUser?.image || "https://cdn.pixabay.com/photo/2016/08/31/11/54/icon-1633249_1280.png"} alt="" />
                     <p className="font-bold">{auth.reqUser?.fullName}</p>
                   </div>
                   <div className="space-x-3 text-2xl flex">
@@ -153,11 +172,50 @@ export const HomePage = () => {
 
               <div className="bg-white overflow-y-scroll h-[72vh] px-3">
                 {query &&
-                  [1, 1, 1, 1, 1].map((item) => (
-                    <div onClick={handleClickChat}>
+                  auth.searchUser?.map((item) => (
+                    <div onClick={() => handleClickChat(item.id)}>
                       {" "}
                       <hr />
-                      <ChatCard />{" "}
+                      <ChatCard
+                        name={item.fullName}
+                        userImage={
+                          item.image ||
+                          "https://cdn.pixabay.com/photo/2020/07/01/12/58/icon-5359553_1280.png"
+                        }
+                      />
+                    </div>
+                  ))}
+
+                {chat.chats.length > 0 &&
+                  !query &&
+                  chat.chats?.map((item) => (
+                    <div onClick={() => handleCurrentChat(item)}>
+                      <hr />
+                      {item.isGroup ? (
+                        <ChatCard
+                          name={item.chatName}
+                          userImage={
+                            item.chatImage ||
+                            "https://cdn.pixabay.com/photo/2020/07/01/12/58/icon-5359553_1280.png"
+                          }
+                        />
+                      ) : (
+                        <ChatCard
+                          isChat={true}
+                          name={
+                            auth.reqUser?.id !== item.users[0]?.id
+                              ? item.users[0].fullName
+                              : item.users[1].fullName
+                          }
+                          userImage={
+                            auth.reqUser.id !== item.users[0].id
+                              ? item.users[0].image ||
+                                "https://cdn.pixabay.com/photo/2020/07/01/12/58/icon-5359553_1280.png"
+                              : item.users[1].image ||
+                                "https://cdn.pixabay.com/photo/2020/07/01/12/58/icon-5359553_1280.png"
+                          }
+                        />
+                      )}
                     </div>
                   ))}
               </div>
@@ -190,10 +248,16 @@ export const HomePage = () => {
                 <div className="py-3 space-x-4 flex items-center px-3">
                   <img
                     className="w-10 h-10 rounded-full"
-                    src="https://cdn.pixabay.com/photo/2023/05/21/17/16/bird-8008902_1280.jpg"
+                    src={ currentChat.isGroup? currentChat.chatImage || "https://cdn.pixabay.com/photo/2020/07/01/12/58/icon-5359553_1280.png":
+                     ( auth.reqUser.id !== currentChat.users[0].id
+                              ? currentChat.users[0].image ||
+                                "https://cdn.pixabay.com/photo/2020/07/01/12/58/icon-5359553_1280.png"
+                              : currentChat.users[1].image ||
+                                "https://cdn.pixabay.com/photo/2020/07/01/12/58/icon-5359553_1280.png"
+                    )}
                     alt=""
                   />
-                  <p>Ronaldo</p>
+                  <p>{currentChat.isGroup? currentChat.chatName: (auth.reqUser?.id===currentChat.users[0].id?currentChat.users[1].fullName:currentChat.users[0].fullName)}</p>
                 </div>
                 <div className="py-3 flex space-x-4 items-center px-3">
                   <AiOutlineSearch />
@@ -203,8 +267,8 @@ export const HomePage = () => {
             </div>
             <div className="px-10 h-[85vh] overflow-y-scroll ">
               <div className="space-x-1 flex flex-col justify-center mt-20 py-2">
-                {[1, 1, 1, 1, 1].map((item, i) => (
-                  <MessageCard isReqUserMsg={i % 2 === 0} content={"message"} />
+                {message.messages.length> 0 && message.messages?.map((item, i) => (
+                  <MessageCard isReqUserMsg={item.user.id!==auth.reqUser.id} content={item.content} />
                 ))}
               </div>
             </div>
