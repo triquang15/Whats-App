@@ -191,12 +191,12 @@ export const HomePage = () => {
                   chat.chats?.map((item) => (
                     <div onClick={() => handleCurrentChat(item)}>
                       <hr />
-                      {item.isGroup ? (
+                      {item.group ? (
                         <ChatCard
                           name={item.chatName}
                           userImage={
                             item.chatImage ||
-                            "https://cdn.pixabay.com/photo/2020/07/01/12/58/icon-5359553_1280.png"
+                            "https://cdn.pixabay.com/photo/2017/07/18/23/40/group-2517459_1280.png"
                           }
                         />
                       ) : (
@@ -248,7 +248,7 @@ export const HomePage = () => {
                 <div className="py-3 space-x-4 flex items-center px-3">
                   <img
                     className="w-10 h-10 rounded-full"
-                    src={ currentChat.isGroup? currentChat.chatImage || "https://cdn.pixabay.com/photo/2020/07/01/12/58/icon-5359553_1280.png":
+                    src={ currentChat.group? currentChat.chatImage || "https://cdn.pixabay.com/photo/2017/07/18/23/40/group-2517459_1280.png":
                      ( auth.reqUser.id !== currentChat.users[0].id
                               ? currentChat.users[0].image ||
                                 "https://cdn.pixabay.com/photo/2020/07/01/12/58/icon-5359553_1280.png"
@@ -257,7 +257,7 @@ export const HomePage = () => {
                     )}
                     alt=""
                   />
-                  <p>{currentChat.isGroup? currentChat.chatName: (auth.reqUser?.id===currentChat.users[0].id?currentChat.users[1].fullName:currentChat.users[0].fullName)}</p>
+                  <p>{currentChat.group? currentChat.chatName: (auth.reqUser?.id===currentChat.users[0].id?currentChat.users[1].fullName:currentChat.users[0].fullName)}</p>
                 </div>
                 <div className="py-3 flex space-x-4 items-center px-3">
                   <AiOutlineSearch />
@@ -266,7 +266,7 @@ export const HomePage = () => {
               </div>
             </div>
             <div className="px-10 h-[85vh] overflow-y-scroll ">
-              <div className="space-x-1 flex flex-col justify-center mt-20 py-2">
+              <div className="space-y-1 flex flex-col justify-center mt-20 py-2">
                 {message.messages.length> 0 && message.messages?.map((item, i) => (
                   <MessageCard isReqUserMsg={item.user.id!==auth.reqUser.id} content={item.content} />
                 ))}
