@@ -20,6 +20,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { currentUser, logoutAction, searchUser } from "../Redux/Auth/Action";
 import { createChat, getUserChat } from "../Redux/Chat/Action";
 import { createMessage, getAllMessage } from "../Redux/Message/Action";
+import { over } from "stompjs";
+import SockJS from "sockjs-client/dist/sockjs";
 
 export const HomePage = () => {
   const [query, setQuery] = useState(null);
@@ -35,6 +37,70 @@ export const HomePage = () => {
   const { auth, chat, message } = useSelector((store) => store);
   const token = localStorage.getItem("token");
 
+  const [stompClient, setStompClient] = useState();
+  const [isConnect, setIsConnect] = useState(false);
+  const [messages, setMessages] = useState([]);
+
+  const connect = () => {
+    const sock = new SockJS("http://localhost:8085/ws");
+    const temp = over(sock);
+    setStompClient(temp);
+
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      "X-XSRF-TOKEN": getCookie("XSRF-TOKEN"),
+    }
+    temp.connect(headers, onConnect,onError);
+  }
+
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) {
+      return parts.pop().split(";").shift();
+    }
+  }
+
+  const onError = (error) => {
+    console.log("No error ",error);
+  }
+
+  const onConnect = () =>{
+    setIsConnect(true);
+  }
+
+  useEffect(() => {
+    if(message.newMessage && stompClient) {
+      setMessages([...messages, message.newMessage])
+      stompClient?.send("/app/message", {}, JSON.stringify(message.newMessage));
+    }
+
+  }, [message.newMessage])
+
+  const onMessageRecive=(payload) => {
+    const reciveMessage = JSON.stringify(payload.body);
+    console.log("Recive Message ", reciveMessage);
+    setMessages([...messages, reciveMessage]);
+  }
+
+  useEffect(() => {
+    if(isConnect && stompClient && auth.reqUser && currentChat) {
+      const subscription = stompClient.subscribe("/group/"+currentChat.id.toString(), onMessageRecive);
+console.log("Hello..............");
+      return () => {
+        subscription.unsubscribe();
+      }
+    }
+  })
+
+  useEffect(() => {
+    connect();
+  }, [])
+
+  useEffect(() => {
+    setMessages(message.messages)
+  }, [message.messages])
+
   const handleClick = (e) => {
     setAnchorEl(e.currentTarget);
   };
@@ -47,10 +113,15 @@ export const HomePage = () => {
   };
   const handleClickChat = (userId) => {
     dispatch(createChat({ token, data: { userId } }));
-    setQuery("")
+    setQuery("");
   };
   const hanldeMessage = () => {
-    dispatch(createMessage({token, data:{chatId:currentChat.id, content:content}}))
+    dispatch(
+      createMessage({
+        token,
+        data: { chatId: currentChat.id, content: content },
+      })
+    );
   };
 
   const handleNavigate = () => {
@@ -85,13 +156,13 @@ export const HomePage = () => {
   }, [chat.createChat, chat.createGroupChat]);
 
   const handleCurrentChat = (item) => {
-    setCurrentChat(item)
-  }
+    setCurrentChat(item);
+  };
 
-  useEffect(()=> {
-    if(currentChat?.id)
-    dispatch(getAllMessage({chatId:currentChat.id, token}))
-  }, [currentChat, message.newMessage])
+  useEffect(() => {
+    if (currentChat?.id)
+      dispatch(getAllMessage({ chatId: currentChat.id, token }));
+  }, [currentChat, message.newMessage]);
 
   return (
     <div className="relative">
@@ -115,7 +186,12 @@ export const HomePage = () => {
                   >
                     <img
                       className="rounded-full w-10 h-10 cursor-pointer"
-                      src={auth.reqUser?.image || "https://cdn.pixabay.com/photo/2016/08/31/11/54/icon-1633249_1280.png"} alt="" />
+                      src={
+                        auth.reqUser?.image ||
+                        "https://cdn.pixabay.com/photo/2016/08/31/11/54/icon-1633249_1280.png"
+                      }
+                      alt=""
+                    />
                     <p className="font-bold">{auth.reqUser?.fullName}</p>
                   </div>
                   <div className="space-x-3 text-2xl flex">
@@ -248,16 +324,25 @@ export const HomePage = () => {
                 <div className="py-3 space-x-4 flex items-center px-3">
                   <img
                     className="w-10 h-10 rounded-full"
-                    src={ currentChat.group? currentChat.chatImage || "https://cdn.pixabay.com/photo/2017/07/18/23/40/group-2517459_1280.png":
-                     ( auth.reqUser.id !== currentChat.users[0].id
-                              ? currentChat.users[0].image ||
-                                "https://cdn.pixabay.com/photo/2020/07/01/12/58/icon-5359553_1280.png"
-                              : currentChat.users[1].image ||
-                                "https://cdn.pixabay.com/photo/2020/07/01/12/58/icon-5359553_1280.png"
-                    )}
+                    src={
+                      currentChat.group
+                        ? currentChat.chatImage ||
+                          "https://cdn.pixabay.com/photo/2017/07/18/23/40/group-2517459_1280.png"
+                        : auth.reqUser.id !== currentChat.users[0].id
+                        ? currentChat.users[0].image ||
+                          "https://cdn.pixabay.com/photo/2020/07/01/12/58/icon-5359553_1280.png"
+                        : currentChat.users[1].image ||
+                          "https://cdn.pixabay.com/photo/2020/07/01/12/58/icon-5359553_1280.png"
+                    }
                     alt=""
                   />
-                  <p>{currentChat.group? currentChat.chatName: (auth.reqUser?.id===currentChat.users[0].id?currentChat.users[1].fullName:currentChat.users[0].fullName)}</p>
+                  <p>
+                    {currentChat.group
+                      ? currentChat.chatName
+                      : auth.reqUser?.id === currentChat.users[0].id
+                      ? currentChat.users[1].fullName
+                      : currentChat.users[0].fullName}
+                  </p>
                 </div>
                 <div className="py-3 flex space-x-4 items-center px-3">
                   <AiOutlineSearch />
@@ -265,11 +350,15 @@ export const HomePage = () => {
                 </div>
               </div>
             </div>
-            <div className="px-10 h-[85vh] overflow-y-scroll ">
+            <div className="px-10 h-[75vh] overflow-y-scroll ">
               <div className="space-y-1 flex flex-col justify-center mt-20 py-2">
-                {message.messages.length> 0 && message.messages?.map((item, i) => (
-                  <MessageCard isReqUserMsg={item.user.id!==auth.reqUser.id} content={item.content} />
-                ))}
+                {messages.length > 0 &&
+                  messages?.map((item, i) => (
+                    <MessageCard
+                      isReqUserMsg={item.user.id !== auth.reqUser.id}
+                      content={item.content}
+                    />
+                  ))}
               </div>
             </div>
             <div className="footer bg-[#f0f2f5] absolute bottom-0 w-full py-3 text-2xl">
