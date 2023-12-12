@@ -47,8 +47,8 @@ export const HomePage = () => {
     setStompClient(temp);
 
     const headers = {
-      Authorization: `Bearer ${token}`,
-      "X-XSRF-TOKEN": getCookie("XSRF-TOKEN"),
+      Authorization:`Bearer ${token}`,
+      "X-XSRF-TOKEN":getCookie("XSRF-TOKEN"),
     }
     temp.connect(headers, onConnect,onError);
   }
@@ -78,7 +78,7 @@ export const HomePage = () => {
   }, [message.newMessage])
 
   const onMessageRecive=(payload) => {
-    const reciveMessage = JSON.stringify(payload.body);
+    const reciveMessage = JSON.parse(payload.body);
     console.log("Recive Message ", reciveMessage);
     setMessages([...messages, reciveMessage]);
   }
@@ -86,7 +86,7 @@ export const HomePage = () => {
   useEffect(() => {
     if(isConnect && stompClient && auth.reqUser && currentChat) {
       const subscription = stompClient.subscribe("/group/"+currentChat.id.toString(), onMessageRecive);
-console.log("Hello..............");
+      console.log("Hello..............");
       return () => {
         subscription.unsubscribe();
       }

@@ -9,17 +9,19 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocket implements WebSocketMessageBrokerConfigurer {
+	
+	private final String url = "http://localhost:3000";
 
 	@Override
 	public void registerStompEndpoints(StompEndpointRegistry registry) {
-		registry.addEndpoint("/ws").setAllowedOriginPatterns("*").withSockJS();
+		registry.addEndpoint("/ws").setAllowedOrigins(url).setAllowedOriginPatterns("*").withSockJS();
 	}
 
 	@Override
-	public void configureMessageBroker(MessageBrokerRegistry brokerRegistry) {
-		brokerRegistry.setApplicationDestinationPrefixes("/app");
-		brokerRegistry.enableSimpleBroker("/group", "/user");
-		brokerRegistry.setUserDestinationPrefix("/user");
+	public void configureMessageBroker(MessageBrokerRegistry registry) {
+		registry.setApplicationDestinationPrefixes("/app");
+		registry.enableSimpleBroker("/group", "/user");
+		registry.setUserDestinationPrefix("/user");
 	}
 
 }

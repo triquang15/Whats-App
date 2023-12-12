@@ -13,7 +13,7 @@ public class RealtimeChat {
 	@Autowired
 	private SimpMessagingTemplate simpMessagingTemplate;
 	
-	@MessageMapping("message")
+	@MessageMapping("/message")
 	@SendTo("/group/public")
 	public Message reciveMessgae(@Payload Message message) {
 		
